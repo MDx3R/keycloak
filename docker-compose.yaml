@@ -7,7 +7,7 @@ services:
       KC_PROXY_HEADERS: forwarded
       KC_PROXY_TRUSTED_ADDRESSES: 127.0.0.1 # Adjust to your Nginx container IP or network for production
       KC_HOSTNAME: http://localhost/keycloak # For localhost; change to https://example.com/keycloak for production
-      KC_HOSTNAME_ADMIN: http://localhost:8080
+      # KC_HOSTNAME_ADMIN: http://localhost:8080
       KC_HOSTNAME_STRICT: true
       KC_HOSTNAME_STRICT_HTTPS: false # Set to true for production with HTTPS
       KC_HOSTNAME_STRICT_BACKCHANNEL: true # Strict hostname checks for backchannel only
