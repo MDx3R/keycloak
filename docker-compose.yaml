@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.2
+    environment:
+      KC_PROXY_HEADERS: forwarded
+      KC_PROXY_TRUSTED_ADDRESSES: 127.0.0.1 # Adjust to your Nginx container IP or network for production
+      KC_HOSTNAME: http://localhost/keycloak # For localhost; change to https://example.com/keycloak for production
+      KC_HOSTNAME_ADMIN: http://localhost:8080
+      KC_HOSTNAME_STRICT: true
+      KC_HOSTNAME_STRICT_HTTPS: false # Set to true for production with HTTPS
+      KC_HOSTNAME_STRICT_BACKCHANNEL: true # Strict hostname checks for backchannel only
+      KC_HTTP_ENABLED: true # Required for HTTP backend (Nginx terminates TLS in production)
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: password
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin-password
+      KC_LOG_LEVEL: debug
+    command: start
+    ports:
+      - "8080:8080" # Internal only, not exposed publicly
+    depends_on:
+      - postgres
+    networks:
+      - keycloak-network
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80" # For localhost; add "443:443" for production with SSL
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # For production, uncomment to mount SSL certificates:
+      # - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - keycloak
+    networks:
+      - keycloak-network
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - keycloak-network
+
+volumes:
+  postgres_data:
+
+networks:
+  keycloak-network:
+    driver: bridge
